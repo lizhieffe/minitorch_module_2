@@ -90,9 +90,46 @@ def broadcast_index(
     Returns:
         None
     """
-    # TODO: Implement for Task 2.2.
-    raise NotImplementedError("Need to implement for Task 2.2")
+    big_dim = len(big_shape)
+    dim = len(shape)
 
+    for i in range(dim):
+      big_s = big_shape[big_dim-dim+i]
+      s = shape[i]
+      if big_s == s:
+        out_index[i] = big_index[big_dim-dim+i]
+      else:
+        out_index[i] = 0
+    return
+
+
+def left_pad_to_dim(shape: UserShape, dim: int) -> UserShape:
+    """Left pad to the shape to the given dimension.
+
+    It does left pad because: When operating on two arrays, NumPy compares their
+    shapes element-wise. It starts with the trailing (i.e. rightmost) dimension
+    and works its way left.
+
+    https://numpy.org/doc/stable/user/basics.broadcasting.html#general-broadcasting-rules
+
+    Args:
+      shape: the input shape to pad.
+      dim: the target dimension.
+
+    Returns:
+      The padded shape. If the input shape already matches the dimension, it is no-op.
+    """
+    if len(shape) > dim:
+      raise ValueError("The shape to pad should not greater than the dim.")
+    if len(shape) == dim:
+      return shape
+
+    ret = []
+    for i in range(dim - len(shape)):
+      ret.append(1)
+    for it in shape:
+      ret.append(it)
+    return ret
 
 def shape_broadcast(shape1: UserShape, shape2: UserShape) -> UserShape:
     """
@@ -108,8 +145,18 @@ def shape_broadcast(shape1: UserShape, shape2: UserShape) -> UserShape:
     Raises:
         IndexingError : if cannot broadcast
     """
-    # TODO: Implement for Task 2.2.
-    raise NotImplementedError("Need to implement for Task 2.2")
+    dim = max(len(shape1), len(shape2))
+    if len(shape1) < dim:
+      shape1 = left_pad_to_dim(shape1, dim)
+    if len(shape2) < dim:
+      shape2 = left_pad_to_dim(shape2, dim)
+    
+    ret = []
+    for s1, s2 in zip(shape1, shape2):
+      if s1 != 1 and s2 != 1 and s1 != s2:
+        raise IndexingError("Cannot broadcast.")
+      ret.append(max(s1, s2))
+    return tuple(ret)
 
 
 def strides_from_shape(shape: UserShape) -> UserStrides:
