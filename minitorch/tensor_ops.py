@@ -1,9 +1,11 @@
 from __future__ import annotations
+from re import L
 
 from typing import TYPE_CHECKING, Any, Callable, Optional, Type
 
 import numpy as np
 from typing_extensions import Protocol
+import copy
 
 from . import operators
 from .tensor_data import (
@@ -268,11 +270,35 @@ def tensor_map(fn: Callable[[float], float]) -> Any:
         in_shape: Shape,
         in_strides: Strides,
     ) -> None:
-        # TODO: Implement for Task 2.3.
-        raise NotImplementedError("Need to implement for Task 2.3")
+        # TODO: assuming during broadcast, the underlying storage doesn't
+        # change. So the in and out storages are still one to one mapping.
+        assert len(in_storage) == len(out), f"{len(in_storage)=}, {len(out)=}"
+        for i in range(len(out)):
+            out[i] = fn(in_storage[i])
 
     return _map
 
+
+def get_all_indices_helper(shape: Shape, dim_n: int, curr_seq: list[int], ret: list[Index]) -> None:
+  if dim_n >= len(shape):
+    
+    arr = np.array(copy.deepcopy(curr_seq))
+    ret.append(arr)
+    return
+
+  for i in range(shape[dim_n]):
+    curr_seq.append(i)
+    get_all_indices_helper(shape, dim_n + 1, curr_seq=curr_seq, ret=ret)
+    del curr_seq[-1]
+
+
+def get_all_indices(shape: Shape) -> list[Index]:
+    curr_seq = []
+    ret = []
+
+    get_all_indices_helper(shape, 0, curr_seq, ret)
+
+    return ret
 
 def tensor_zip(fn: Callable[[float, float], float]) -> Any:
     """
@@ -318,8 +344,22 @@ def tensor_zip(fn: Callable[[float, float], float]) -> Any:
         b_shape: Shape,
         b_strides: Strides,
     ) -> None:
-        # TODO: Implement for Task 2.3.
-        raise NotImplementedError("Need to implement for Task 2.3")
+        all_indices = get_all_indices(out_shape)
+        for index in all_indices:
+          # Get the a pos
+          a_index = np.zeros((a_shape.shape))
+          broadcast_index(big_index=index, big_shape=out_shape, shape=a_shape, out_index=a_index)
+          a_pos = index_to_position(a_index, a_strides)
+          a_val = a_storage[a_pos]
+
+          # Get the b pos
+          b_index = np.zeros((b_shape.shape))
+          broadcast_index(big_index=index, big_shape=out_shape, shape=b_shape, out_index=b_index)
+          b_pos = index_to_position(b_index, b_strides)
+          b_val = b_storage[b_pos]
+
+          out_pos = index_to_position(index, out_strides)
+          out[out_pos] = fn(a_val, b_val)
 
     return _zip
 

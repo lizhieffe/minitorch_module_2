@@ -42,7 +42,7 @@ def index_to_position(index: Index, strides: Strides) -> int:
     Returns:
         Position in storage
     """
-    return np.dot(index, strides)
+    return int(np.dot(index, strides))
 
 
 def to_index(ordinal: int, shape: Shape, out_index: OutIndex) -> None:
@@ -279,8 +279,6 @@ class TensorData:
 
         shape = [self.shape[i] for i in order]
         strides = [self.strides[i] for i in order]
-        # shape = self.shape.transpose(order).tolist()
-        # strides = self._strides.transpose(order).tolist()
         
         return TensorData(self._storage, shape=tuple(shape), strides=tuple(strides))
 
