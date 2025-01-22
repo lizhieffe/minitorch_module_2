@@ -87,7 +87,10 @@ def log_back(a, b):
 
 # - inv
 def inv(a: float) -> float:
-    return 1.0 / a
+    print(f"===lizhi zzz {a=}")
+    ret = 1.0 / a
+    print(f"===lizhi zzz {ret=}")
+    return ret
 
 
 # - inv_back

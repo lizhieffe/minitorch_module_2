@@ -131,8 +131,9 @@ class SimpleOps(TensorOps):
         def ret(a: Tensor, out: Optional[Tensor] = None) -> Tensor:
             if out is None:
                 out = a.zeros(a.shape)
-            print(f"===lizhi {out.shape=}")
+            print(f"===lizhi yyy {a.shape=}, {out.shape=}")
             f(*out.tuple(), *a.tuple())
+            print(f"===lizhi yyy {out=}")
             return out
 
         return ret
@@ -271,11 +272,24 @@ def tensor_map(fn: Callable[[float], float]) -> Any:
         in_shape: Shape,
         in_strides: Strides,
     ) -> None:
-        # TODO: assuming during broadcast, the underlying storage doesn't
-        # change. So the in and out storages are still one to one mapping.
-        assert len(in_storage) == len(out), f"{len(in_storage)=}, {len(out)=}"
-        for i in range(len(out)):
-            out[i] = fn(in_storage[i])
+        assert len(out.shape) == 1, f"{out.shape=}"
+        # print(f"===lizhi bbb {out.shape=}")
+        # # TODO: assuming during broadcast, the underlying storage doesn't
+        # # change. So the in and out storages are still one to one mapping.
+        # assert len(in_storage) == len(out), f"{len(in_storage)=}, {len(out)=}"
+        # for i in range(len(out)):
+        #     out[i] = fn(in_storage[i])
+
+        all_indices = get_all_indices(out_shape)
+        for index in all_indices:
+          # Get the a pos
+          in_index = np.zeros((in_shape.shape))
+          broadcast_index(big_index=index, big_shape=out_shape, shape=in_shape, out_index=in_index)
+          in_pos = index_to_position(in_index, in_strides)
+          in_val = in_storage[in_pos]
+
+          out_pos = index_to_position(index, out_strides)
+          out[out_pos] = fn(in_val)
 
     return _map
 
@@ -395,8 +409,19 @@ def tensor_reduce(fn: Callable[[float, float], float]) -> Any:
         a_strides: Strides,
         reduce_dim: int,
     ) -> None:
-        # TODO: Implement for Task 2.3.
-        raise NotImplementedError("Need to implement for Task 2.3")
+        assert len(out.shape) == len(a_storage.shape)
+        all_indices = get_all_indices(out_shape)
+        for index in all_indices:
+            pos = index_to_position(index, a_strides)
+            val = a_storage[pos]
+            for i in range(1, a_shape[reduce_dim]):
+                reduce_index = copy.deepcopy(index)
+                reduce_index[reduce_dim] = i
+                pos = index_to_position(reduce_index, a_strides)
+                val = fn(val, a_storage[pos])
+            
+            out_pos = index_to_position(index, out_strides)
+            out[out_pos] = val
 
     return _reduce
 
