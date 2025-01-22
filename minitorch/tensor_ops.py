@@ -131,6 +131,7 @@ class SimpleOps(TensorOps):
         def ret(a: Tensor, out: Optional[Tensor] = None) -> Tensor:
             if out is None:
                 out = a.zeros(a.shape)
+            print(f"===lizhi {out.shape=}")
             f(*out.tuple(), *a.tuple())
             return out
 
