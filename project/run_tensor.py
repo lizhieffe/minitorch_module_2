@@ -44,6 +44,8 @@ class Linear(minitorch.Module):
         self.bias = RParam(out_size)
         self.out_size = out_size
 
+        print(f"===lizhi run_tensor Linear bias {self.bias.value.unique_id}")
+
     def forward(self, x):
         y = x.f.matrix_multiply(x, self.weights.value)
         y = x.f.add_zip(y, self.bias.value)
