@@ -226,6 +226,10 @@ class SimpleOps(TensorOps):
 
     @staticmethod
     def matrix_multiply(a: "Tensor", b: "Tensor") -> "Tensor":
+        assert len(a.shape) <= 2
+        assert len(b.shape) <= 2
+        y = np.matmul(a.to_numpy(), b.to_numpy())
+        return Te
         raise NotImplementedError("Not implemented in this assignment")
 
     is_cuda = False

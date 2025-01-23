@@ -193,21 +193,18 @@ class LT(Function):
     @staticmethod
     def backward(ctx: Context, grad_output: Tensor) -> Tuple[Tensor, Tensor]:
         (a, b) = ctx.saved_tensors
-
-        out_tensor_data_a = TensorData(storage=np.ndarray(a._tensor._storage.shape), shape=a._tensor.shape)
-        out_tensor_data_b = TensorData(storage=np.ndarray(b._tensor._storage.shape), shape=b._tensor.shape)
-
-        return Tensor(out_tensor_data_a), Tensor(out_tensor_data_b)
+        return a.zeros(a._tensor.shape), b.zeros(b._tensor.shape)
 
 class EQ(Function):
     @staticmethod
     def forward(ctx: Context, a: Tensor, b: Tensor) -> Tensor:
+        ctx.save_for_backward(a, b)
         return a.f.eq_zip(a, b)
 
     @staticmethod
     def backward(ctx: Context, grad_output: Tensor) -> Tuple[Tensor, Tensor]:
-        # TODO: Implement for Task 2.4.
-        raise NotImplementedError("Need to implement for Task 2.4")
+        (a, b) = ctx.saved_tensors
+        return a.zeros(a._tensor.shape), b.zeros(b._tensor.shape)
 
 
 class IsClose(Function):
@@ -222,11 +219,7 @@ class Permute(Function):
         ctx.save_for_backward(a, order)
         assert order.dims == 1
         order_list = [int(order[i]) for i in range(order.shape[0])]
-        print(f"===lizhi tensor_functions Permute {a=}, {order=}, {order_list=}")
         return a._new(a._tensor.permute(*order_list))
-        # ctx.save_for_backward(a)
-        # ret = Tensor(a._tensor.permute(order))
-        # return ret
 
     @staticmethod
     def backward(ctx: Context, grad_output: Tensor) -> Tuple[Tensor, float]:
@@ -397,11 +390,9 @@ def grad_central_difference(
 
 
 def grad_check(f: Any, *vals: Tensor) -> None:
-    print(f"===lizhi in grad_check 000")
     for x in vals:
         x.requires_grad_(True)
         x.zero_grad_()
-        print(f"===liizhi grad_check 000 {x.unique_id=}, {x.is_leaf()=}")
     random.seed(10)
     out = f(*vals)
     out.sum().backward()
@@ -419,7 +410,6 @@ but was expecting derivative %f from central difference.
     for i, x in enumerate(vals):
         ind = x._tensor.sample()
         check = grad_central_difference(f, *vals, arg=i, ind=ind)
-        print(f"===liizhi grad_check {x.unique_id=}, {x.is_leaf()=}")
         assert x.grad is not None
         np.testing.assert_allclose(
             x.grad[ind],

@@ -3,11 +3,19 @@ Be sure you have minitorch installed in you Virtual Env.
 >>> pip install -Ue .
 """
 
+# Need to access the local package when running in colab
+import sys
+sys.path.append('/content/minitorch_module_2')
+
 import minitorch
 
 
 def RParam(*shape):
+    # TODO: does it need to set requires_grad to True?
+    # rand() is defined in tensor_functions.py
     r = 2 * (minitorch.rand(shape) - 0.5)
+
+    # Parameter is defined in module.py
     return minitorch.Parameter(r)
 
 
@@ -21,9 +29,12 @@ class Network(minitorch.Module):
         self.layer3 = Linear(hidden_layers, 1)
 
     def forward(self, x):
-        # TODO: Implement for Task 2.5.
-        raise NotImplementedError("Need to implement for Task 2.5")
-
+        y = self.layer1.forward(x)
+        y = x.f.relu_map(y)
+        y = self.layer2.forward(y)
+        y = x.f.relu_map(y)
+        y = self.layer3.forward(y)
+        return y
 
 class Linear(minitorch.Module):
     def __init__(self, in_size, out_size):
@@ -33,8 +44,9 @@ class Linear(minitorch.Module):
         self.out_size = out_size
 
     def forward(self, x):
-        # TODO: Implement for Task 2.5.
-        raise NotImplementedError("Need to implement for Task 2.5")
+        y = x.f.matrix_multiply(self.weights.value, x)
+        y = x.f.add_zip(y, self.bais)
+        return y
 
 
 def default_log_fn(epoch, total_loss, correct, losses):

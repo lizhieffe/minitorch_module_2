@@ -278,9 +278,7 @@ class TensorData:
         ), f"Must give a position to each dimension. Shape: {self.shape} Order: {order}"
 
         shape = []
-        print(f"===lizhi {order=}")
         for i in order:
-          print(f"===lizhi aaa {i=}")
           shape.append(self.shape[i])
         # shape = [self.shape[i] for i in order]
         strides = [self.strides[i] for i in order]
