@@ -99,25 +99,32 @@ class Add(Function):
 class Mul(Function):
     @staticmethod
     def forward(ctx: Context, a: Tensor, b: Tensor) -> Tensor:
+        ctx.save_for_backward(a, b)
         backend = a.backend
         return backend.mul_zip(a, b)
 
     @staticmethod
     def backward(ctx: Context, grad_output: Tensor) -> Tuple[Tensor, Tensor]:
-        # TODO: Implement for Task 2.4.
-        raise NotImplementedError("Need to implement for Task 2.4")
+        (a, b) = ctx.saved_tensors
+        return b * grad_output, a * grad_output
 
 
 class Sigmoid(Function):
     @staticmethod
     def forward(ctx: Context, t1: Tensor) -> Tensor:
+        # t1.requires_grad_(True)
+        ctx.save_for_backward(t1)
         backend = t1.backend
-        return backend.sigmoid_map(t1)
+        ret = backend.sigmoid_map(t1)
+        print(f"=== sigmoid {t1.requires_grad()=} {t1=} sigmoid(t1)={ret}")
+        return ret
 
     @staticmethod
     def backward(ctx: Context, grad_output: Tensor) -> Tensor:
-        # TODO: Implement for Task 2.4.
-        raise NotImplementedError("Need to implement for Task 2.4")
+        (t1,) = ctx.saved_tensors
+        ret =  t1.backend.sigmoid_back_map(t1) * grad_output
+        print(f"=== sigmoid_back {grad_output=} {t1=} sigmoid_back(t1)={ret}")
+        return ret
 
 
 class ReLU(Function):
@@ -380,9 +387,11 @@ def grad_central_difference(
 
 
 def grad_check(f: Any, *vals: Tensor) -> None:
+    print(f"===lizhi in grad_check 000")
     for x in vals:
         x.requires_grad_(True)
         x.zero_grad_()
+        print(f"===liizhi grad_check 000 {x.unique_id=}, {x.is_leaf()=}")
     random.seed(10)
     out = f(*vals)
     out.sum().backward()
@@ -400,6 +409,7 @@ but was expecting derivative %f from central difference.
     for i, x in enumerate(vals):
         ind = x._tensor.sample()
         check = grad_central_difference(f, *vals, arg=i, ind=ind)
+        print(f"===liizhi grad_check {x.unique_id=}, {x.is_leaf()=}")
         assert x.grad is not None
         np.testing.assert_allclose(
             x.grad[ind],

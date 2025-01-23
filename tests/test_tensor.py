@@ -26,17 +26,12 @@ def test_create(t1: List[float]) -> None:
 def test_one_args(
     fn: Tuple[str, Callable[[float], float], Callable[[Tensor], Tensor]], t1: Tensor
 ) -> None:
-    print("===================================================================")
     "Test one-arg functions compared to floats"
     name, base_fn, tensor_fn = fn
     
     t2 = tensor_fn(t1)
-    print(f"===lizhi ccc {name=}, {base_fn=}, {tensor_fn=}")
-    print(f"===lizhi ccc {t1=}")
-    print(f"===lizhi ccc {t2=}")
     
     for ind in t2._tensor.indices():
-        print(f"===lizhi {t2[ind]=} {base_fn(t1[ind])=}")
         assert_close(t2[ind], base_fn(t1[ind]))
 
 
@@ -61,6 +56,7 @@ def test_one_derivative(
     fn: Tuple[str, Callable[[float], float], Callable[[Tensor], Tensor]], t1: Tensor
 ) -> None:
     "Test the gradient of a one-arg tensor function"
+    print("===================================================================")
     name, _, tensor_fn = fn
     grad_check(tensor_fn, t1)
 

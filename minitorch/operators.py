@@ -61,6 +61,8 @@ def is_close(a, b) -> bool:
 def sigmoid(a):
     return 1 / (1 + math.exp(-1 * a))
 
+def sigmoid_back(a):
+    return sigmoid(a) * (1 - sigmoid(a))
 
 # - relu
 def relu(a):
@@ -87,9 +89,7 @@ def log_back(a, b):
 
 # - inv
 def inv(a: float) -> float:
-    print(f"===lizhi zzz {a=}")
     ret = 1.0 / a
-    print(f"===lizhi zzz {ret=}")
     return ret
 
 

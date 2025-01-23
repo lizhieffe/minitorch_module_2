@@ -70,6 +70,7 @@ class TensorBackend:
         # Maps
         self.neg_map = ops.map(operators.neg)
         self.sigmoid_map = ops.map(operators.sigmoid)
+        self.sigmoid_back_map = ops.map(operators.sigmoid_back)
         self.relu_map = ops.map(operators.relu)
         self.log_map = ops.map(operators.log)
         self.exp_map = ops.map(operators.exp)
