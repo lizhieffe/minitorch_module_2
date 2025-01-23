@@ -116,14 +116,12 @@ class Sigmoid(Function):
         ctx.save_for_backward(t1)
         backend = t1.backend
         ret = backend.sigmoid_map(t1)
-        print(f"=== sigmoid {t1.requires_grad()=} {t1=} sigmoid(t1)={ret}")
         return ret
 
     @staticmethod
     def backward(ctx: Context, grad_output: Tensor) -> Tensor:
         (t1,) = ctx.saved_tensors
         ret =  t1.backend.sigmoid_back_map(t1) * grad_output
-        print(f"=== sigmoid_back {grad_output=} {t1=} sigmoid_back(t1)={ret}")
         return ret
 
 
