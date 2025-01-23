@@ -277,7 +277,12 @@ class TensorData:
             range(len(self.shape))
         ), f"Must give a position to each dimension. Shape: {self.shape} Order: {order}"
 
-        shape = [self.shape[i] for i in order]
+        shape = []
+        print(f"===lizhi {order=}")
+        for i in order:
+          print(f"===lizhi aaa {i=}")
+          shape.append(self.shape[i])
+        # shape = [self.shape[i] for i in order]
         strides = [self.strides[i] for i in order]
         
         return TensorData(self._storage, shape=tuple(shape), strides=tuple(strides))

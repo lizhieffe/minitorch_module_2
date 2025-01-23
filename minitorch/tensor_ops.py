@@ -73,6 +73,7 @@ class TensorBackend:
         self.sigmoid_back_map = ops.map(operators.sigmoid_back)
         self.relu_map = ops.map(operators.relu)
         self.log_map = ops.map(operators.log)
+        self.log_back_map = ops.map(operators.inv)
         self.exp_map = ops.map(operators.exp)
         self.id_map = ops.map(operators.id)
         self.id_cmap = ops.cmap(operators.id)
@@ -132,9 +133,7 @@ class SimpleOps(TensorOps):
         def ret(a: Tensor, out: Optional[Tensor] = None) -> Tensor:
             if out is None:
                 out = a.zeros(a.shape)
-            print(f"===lizhi yyy {a.shape=}, {out.shape=}")
             f(*out.tuple(), *a.tuple())
-            print(f"===lizhi yyy {out=}")
             return out
 
         return ret

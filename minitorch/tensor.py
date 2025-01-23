@@ -311,6 +311,19 @@ class Tensor:
             out = zero(shape)
         out._type_(self.backend)
         return out
+    
+    def ones(self, shape: Optional[UserShape] = None) -> Tensor:
+        def zero(shape: UserShape) -> Tensor:
+            return Tensor.make(
+                [1.0] * int(operators.prod(shape)), shape, backend=self.backend
+            )
+
+        if shape is None:
+            out = zero(self.shape)
+        else:
+            out = zero(shape)
+        out._type_(self.backend)
+        return out
 
     def tuple(self) -> Tuple[Storage, Shape, Strides]:
         return self._tensor.tuple()
@@ -354,7 +367,7 @@ class Tensor:
         assert h.ctx is not None
 
         x = h.last_fn._backward(h.ctx, d_output)
-        assert len(x) == len(h.inputs), f"Bug in function {h.last_fn}"
+        assert len(x) == len(h.inputs), f"Bug in function {h.last_fn}, {x=}, {h.inputs=}"
         return [
             (inp, inp.expand(self._ensure_tensor(d_in)))
             for inp, d_in in zip(h.inputs, x)

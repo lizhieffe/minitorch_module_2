@@ -21,6 +21,8 @@ if TYPE_CHECKING:
     from .tensor import Tensor
     from .tensor_data import UserIndex, UserShape
 
+# import .tensor
+# from .tensor_data import TensorData
 
 def wrap_tuple(x):  # type: ignore
     "Turn a possible value into a tuple"
@@ -128,37 +130,37 @@ class Sigmoid(Function):
 class ReLU(Function):
     @staticmethod
     def forward(ctx: Context, t1: Tensor) -> Tensor:
-        backend = t1.backend
-        return backend.relu_map(t1)
+        ctx.save_for_backward(t1)
+        return t1.f.relu_map(t1)
 
     @staticmethod
     def backward(ctx: Context, grad_output: Tensor) -> Tensor:
-        # TODO: Implement for Task 2.4.
-        raise NotImplementedError("Need to implement for Task 2.4")
+        (t1,) = ctx.saved_tensors
+        return t1.f.relu_back_zip(t1, grad_output)
 
 
 class Log(Function):
     @staticmethod
     def forward(ctx: Context, t1: Tensor) -> Tensor:
-        backend = t1.backend
-        return backend.log_map(t1)
+        ctx.save_for_backward(t1)
+        return t1.f.log_map(t1)
 
     @staticmethod
     def backward(ctx: Context, grad_output: Tensor) -> Tensor:
-        # TODO: Implement for Task 2.4.
-        raise NotImplementedError("Need to implement for Task 2.4")
+        (t1,) = ctx.saved_tensors
+        return t1.f.log_back_map(t1) * grad_output
 
 
 class Exp(Function):
     @staticmethod
     def forward(ctx: Context, t1: Tensor) -> Tensor:
-        backend = t1.backend
-        return backend.exp_map(t1)
+        ctx.save_for_backward(t1)
+        return t1.f.exp_map(t1)
 
     @staticmethod
     def backward(ctx: Context, grad_output: Tensor) -> Tensor:
-        # TODO: Implement for Task 2.4.
-        raise NotImplementedError("Need to implement for Task 2.4")
+        (t1,) = ctx.saved_tensors
+        return t1.f.exp_map(t1) * grad_output
 
 
 class Sum(Function):
@@ -185,13 +187,17 @@ class All(Function):
 class LT(Function):
     @staticmethod
     def forward(ctx: Context, a: Tensor, b: Tensor) -> Tensor:
+        ctx.save_for_backward(a, b)
         return a.f.lt_zip(a, b)
 
     @staticmethod
     def backward(ctx: Context, grad_output: Tensor) -> Tuple[Tensor, Tensor]:
-        # TODO: Implement for Task 2.4.
-        raise NotImplementedError("Need to implement for Task 2.4")
+        (a, b) = ctx.saved_tensors
 
+        out_tensor_data_a = TensorData(storage=np.ndarray(a._tensor._storage.shape), shape=a._tensor.shape)
+        out_tensor_data_b = TensorData(storage=np.ndarray(b._tensor._storage.shape), shape=b._tensor.shape)
+
+        return Tensor(out_tensor_data_a), Tensor(out_tensor_data_b)
 
 class EQ(Function):
     @staticmethod
@@ -213,13 +219,19 @@ class IsClose(Function):
 class Permute(Function):
     @staticmethod
     def forward(ctx: Context, a: Tensor, order: Tensor) -> Tensor:
-        # TODO: Implement for Task 2.3.
-        raise NotImplementedError("Need to implement for Task 2.3")
+        ctx.save_for_backward(a, order)
+        assert order.dims == 1
+        order_list = [int(order[i]) for i in range(order.shape[0])]
+        print(f"===lizhi tensor_functions Permute {a=}, {order=}, {order_list=}")
+        return a._new(a._tensor.permute(*order_list))
+        # ctx.save_for_backward(a)
+        # ret = Tensor(a._tensor.permute(order))
+        # return ret
 
     @staticmethod
     def backward(ctx: Context, grad_output: Tensor) -> Tuple[Tensor, float]:
-        # TODO: Implement for Task 2.4.
-        raise NotImplementedError("Need to implement for Task 2.4")
+        (a, order) = ctx.saved_tensors
+        return a.ones(a._tensor.shape), a.ones(order._tensor.shape)
 
 
 class View(Function):
