@@ -34,6 +34,7 @@ class Network(minitorch.Module):
         y = self.layer2.forward(y)
         y = x.f.relu_map(y)
         y = self.layer3.forward(y)
+        y = x.f.sigmoid_map(y)
         return y
 
 class Linear(minitorch.Module):
@@ -44,8 +45,8 @@ class Linear(minitorch.Module):
         self.out_size = out_size
 
     def forward(self, x):
-        y = x.f.matrix_multiply(self.weights.value, x)
-        y = x.f.add_zip(y, self.bais)
+        y = x.f.matrix_multiply(x, self.weights.value)
+        y = x.f.add_zip(y, self.bias.value)
         return y
 
 
@@ -69,7 +70,9 @@ class TensorTrain:
         self.learning_rate = learning_rate
         self.max_epochs = max_epochs
         self.model = Network(self.hidden_layers)
-        optim = minitorch.SGD(self.model.parameters(), learning_rate)
+        params = self.model.parameters()
+        print(f"===lizhi run_tensor train params: {[p.value.unique_id for p in params]}")
+        optim = minitorch.SGD(params, learning_rate)
 
         X = minitorch.tensor(data.X)
         y = minitorch.tensor(data.y)
@@ -97,6 +100,8 @@ class TensorTrain:
                 y2 = minitorch.tensor(data.y)
                 correct = int(((out.detach() > 0.5) == y2).sum()[0])
                 log_fn(epoch, total_loss, correct, losses)
+
+            break
 
 
 if __name__ == "__main__":

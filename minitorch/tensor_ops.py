@@ -228,9 +228,14 @@ class SimpleOps(TensorOps):
     def matrix_multiply(a: "Tensor", b: "Tensor") -> "Tensor":
         assert len(a.shape) <= 2
         assert len(b.shape) <= 2
-        y = np.matmul(a.to_numpy(), b.to_numpy())
-        return Te
-        raise NotImplementedError("Not implemented in this assignment")
+        a_numpy = a.to_numpy()
+        b_numpy = b.to_numpy()
+        y = np.matmul(a_numpy, b_numpy).flatten()
+
+        user_shape = list(a.shape)
+        user_shape[-1] = b.shape[-1]
+        
+        return a.make(y, tuple(user_shape), backend=a.f)
 
     is_cuda = False
 

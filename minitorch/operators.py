@@ -74,7 +74,9 @@ def relu(a):
 
 # - log
 def log(a):
-    return math.log(a)
+    # print(f"===lizhi operators log {a=}")
+    ret = math.log(a)
+    return ret
 
 
 # - exp

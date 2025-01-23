@@ -100,6 +100,7 @@ def backpropagate(variable: Variable, deriv: Any) -> None:
     No return. Should write to its results to the derivative values of each leaf through `accumulate_derivative`.
     """
     order = list(topological_sort(variable))
+    print(f"===lizhi autodiff backprop {[n.unique_id for n in order]}")
 
     acc_derivs = {variable.unique_id: deriv}
 
