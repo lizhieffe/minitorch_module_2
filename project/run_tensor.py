@@ -8,10 +8,12 @@ import sys
 sys.path.append('/content/minitorch_module_2')
 
 import minitorch
+import time
+
 
 
 def RParam(*shape):
-    # TODO: does it need to set requires_grad to True?
+    # TODO(lizhi): does it need to set requires_grad to True?
     # rand() is defined in tensor_functions.py
     r = 2 * (minitorch.rand(shape) - 0.5)
 
@@ -30,11 +32,11 @@ class Network(minitorch.Module):
 
     def forward(self, x):
         y = self.layer1.forward(x)
-        y = x.f.relu_map(y)
+        y = minitorch.ReLU.apply(y)
         y = self.layer2.forward(y)
-        y = x.f.relu_map(y)
+        y = minitorch.ReLU.apply(y)
         y = self.layer3.forward(y)
-        y = x.f.sigmoid_map(y)
+        y = minitorch.Sigmoid.apply(y)
         return y
 
 class Linear(minitorch.Module):
@@ -44,11 +46,11 @@ class Linear(minitorch.Module):
         self.bias = RParam(out_size)
         self.out_size = out_size
 
-        print(f"===lizhi run_tensor Linear bias {self.bias.value.unique_id}")
+        # print(f"===lizhi run_tensor Linear bias {self.bias.value.unique_id} {self.bias.value.requires_grad()=}")
 
     def forward(self, x):
-        y = x.f.matrix_multiply(x, self.weights.value)
-        y = x.f.add_zip(y, self.bias.value)
+        y = minitorch.MatMul.apply(x, self.weights.value)
+        y = minitorch.Add.apply(y, self.bias.value)
         return y
 
 
@@ -73,7 +75,7 @@ class TensorTrain:
         self.max_epochs = max_epochs
         self.model = Network(self.hidden_layers)
         params = self.model.parameters()
-        print(f"===lizhi run_tensor train params: {[p.value.unique_id for p in params]}")
+        # print(f"===lizhi run_tensor train params: {[p.value.unique_id for p in params]}")
         optim = minitorch.SGD(params, learning_rate)
 
         X = minitorch.tensor(data.X)
@@ -103,12 +105,19 @@ class TensorTrain:
                 correct = int(((out.detach() > 0.5) == y2).sum()[0])
                 log_fn(epoch, total_loss, correct, losses)
 
-            break
-
 
 if __name__ == "__main__":
     PTS = 50
     HIDDEN = 2
     RATE = 0.5
     data = minitorch.datasets["Simple"](PTS)
+
+
+    start_time = time.time()
+   
     TensorTrain(HIDDEN).train(data, RATE)
+
+    end_time = time.time()
+    elapsed_time = end_time - start_time
+
+    print(f"Elapsed time: {elapsed_time} seconds")
